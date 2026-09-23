@@ -48,10 +48,8 @@ function nodeToZod(schema: unknown): ZodTypeAny {
 }
 
 function objectToZod(s: Record<string, any>): ZodTypeAny {
-  const shape = propsToShape(s);
-  const obj = z.object(shape);
   // Permit unknown keys so the model is never blocked by an incomplete schema.
-  return (obj as any).passthrough?.() ?? obj;
+  return z.looseObject(propsToShape(s));
 }
 
 function withMeta(zod: ZodTypeAny, s: Record<string, any>): ZodTypeAny {
@@ -60,7 +58,7 @@ function withMeta(zod: ZodTypeAny, s: Record<string, any>): ZodTypeAny {
 
 /** Convert a JSON-Schema object's `properties` into a Zod raw shape. */
 export function propsToShape(schema: Record<string, any> | undefined): ZodRawShape {
-  const shape: ZodRawShape = {};
+  const shape: Record<string, ZodTypeAny> = {};
   if (!schema || typeof schema !== "object") return shape;
   const props = schema.properties ?? {};
   const required: string[] = Array.isArray(schema.required) ? schema.required : [];
